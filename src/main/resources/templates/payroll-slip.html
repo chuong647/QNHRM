@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Phiếu lương | QNHRM</title><link rel="stylesheet" href="/css/app.css">
+    <style>
+        .slip{max-width:980px;margin:0 auto}.slip-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.employee-box{display:flex;gap:14px;align-items:center}.avatar{width:56px;height:56px;border-radius:16px;background:#111827;color:#fff;display:grid;place-items:center;font-weight:800;font-size:20px}.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}.summary-card{background:#fff;border:1px solid #e6eaf0;border-radius:16px;padding:17px}.summary-card .label{font-size:12px;color:#64748b;font-weight:700}.summary-card .value{font-size:23px;font-weight:800;margin-top:7px}.salary-table{width:100%;border-collapse:collapse}.salary-table td{padding:12px;border-bottom:1px solid #eef2f7}.salary-table td:last-child{text-align:right;font-weight:700}.grand{font-size:20px!important}.print-actions{display:flex;gap:10px;justify-content:flex-end}.print-only{display:none}@media(max-width:800px){.summary-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:500px){.summary-grid{grid-template-columns:1fr}.slip-head{flex-direction:column}.print-actions{justify-content:stretch}.print-actions a,.print-actions button{flex:1}}@media print{.sidebar,.topbar,.print-actions,.filter-card{display:none!important}.main{margin:0}.content{padding:0}.card{box-shadow:none!important;border:none!important}.print-only{display:block}}
+    </style>
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand"><img class="brand-logo-img" src="/images/qnhrm-logo.png" alt="QNHRM"><div><div class="brand-title">QNHRM</div><div class="brand-sub">QUẢN LÝ NHÂN SỰ &amp; CHẤM CÔNG</div></div></div>
+        <nav class="menu"><div class="menu-title">MENU</div><a href="/">Tổng quan</a><a href="/nhan-vien" th:if="${isAdmin}">Nhân viên</a><a href="/cham-cong">Chấm công</a><a href="/ung-luong">Ứng lương</a>
+            <a href="/bao-cao" th:if="${isAdmin}">Báo cáo tháng</a></nav>
+    </aside>
+    <main class="main"><header class="topbar"><div class="page-title">Phiếu lương</div><div class="user"><span th:text="${currentUser}">admin</span></div></header>
+        <section class="content"><div class="slip">
+            <div class="card slip-head">
+                <div class="employee-box"><div class="avatar" th:text="${#strings.substring(selectedEmployee.fullName,0,1).toUpperCase()}">M</div><div><div class="eyebrow">PAYROLL STATEMENT</div><h1 th:text="${selectedEmployee.fullName}">Mỹ Lệ</h1><p th:text="${selectedEmployee.position != null ? selectedEmployee.position : 'Nhân viên'}">Nhân viên</p></div></div>
+                <div style="text-align:right"><strong th:text="${monthLabel}">Tháng 09/2026</strong><div class="muted" th:text="${selectedEmployee.username}">myle</div></div>
+            </div>
+            <div class="filter-card card" th:if="${isAdmin}" style="padding:16px"><form method="get" action="/phieu-luong" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap"><div><label>Nhân viên</label><select name="employeeId" style="min-width:240px" required><option th:each="employee : ${employees}" th:value="${employee.id}" th:text="${employee.fullName}" th:selected="${employee.id == selectedEmployee.id}"></option></select></div><div><label>Tháng</label><input type="month" name="month" th:value="${month}" required></div><button class="btn btn-primary" type="submit">Xem phiếu</button></form></div>
+            <div class="summary-grid"><div class="summary-card"><div class="label">Tổng giờ</div><div class="value" th:text="${#numbers.formatDecimal(totalHours,1,2)} + ' h'">176.50 h</div></div><div class="summary-card"><div class="label">Ngày công</div><div class="value" th:text="${attendanceDays}">22</div></div><div class="summary-card"><div class="label">Lương/giờ</div><div class="value" th:text="${#numbers.formatDecimal(hourlyRate,0,'COMMA',0,'POINT')} + ' đ'">50,000 đ</div></div><div class="summary-card"><div class="label">Thực lĩnh</div><div class="value" th:text="${#numbers.formatDecimal(netSalary,0,'COMMA',0,'POINT')} + ' đ'">8,325,000 đ</div></div></div>
+            <div class="card" style="padding:22px"><div class="section-title"><h2>Chi tiết tính lương</h2></div><table class="salary-table"><tr><td>Lương gộp</td><td th:text="${#numbers.formatDecimal(grossSalary,0,'COMMA',0,'POINT')} + ' đ'">8,825,000 đ</td></tr><tr><td>Tổng ứng lương</td><td th:text="${#numbers.formatDecimal(totalAdvance,0,'COMMA',0,'POINT')} + ' đ'">500,000 đ</td></tr><tr><td>Ứng lương chưa trừ</td><td th:text="${#numbers.formatDecimal(unpaidAdvance,0,'COMMA',0,'POINT')} + ' đ'">500,000 đ</td></tr><tr><td class="grand">THỰC LĨNH DỰ KIẾN</td><td class="grand" th:text="${#numbers.formatDecimal(netSalary,0,'COMMA',0,'POINT')} + ' đ'">8,325,000 đ</td></tr></table></div>
+            <div class="card" style="padding:22px"><div class="section-title"><h2>Chấm công trong tháng</h2></div><div style="overflow:auto"><table class="salary-table" style="min-width:760px"><thead><tr><th>Ngày</th><th>Vào sáng</th><th>Ra sáng</th><th>Vào chiều</th><th>Ra chiều</th><th>Vào tối</th><th>Ra tối</th><th>Tổng</th></tr></thead><tbody><tr th:each="a : ${attendances}"><td th:text="${#temporals.format(a.workDate,'dd/MM/yyyy')}">01/09/2026</td><td th:text="${a.morningIn != null ? #temporals.format(a.morningIn,'HH:mm') : '-'}">08:00</td><td th:text="${a.morningOut != null ? #temporals.format(a.morningOut,'HH:mm') : '-'}">12:00</td><td th:text="${a.afternoonIn != null ? #temporals.format(a.afternoonIn,'HH:mm') : '-'}">13:30</td><td th:text="${a.afternoonOut != null ? #temporals.format(a.afternoonOut,'HH:mm') : '-'}">17:30</td><td th:text="${a.eveningIn != null ? #temporals.format(a.eveningIn,'HH:mm') : '-'}">-</td><td th:text="${a.eveningOut != null ? #temporals.format(a.eveningOut,'HH:mm') : '-'}">-</td><td th:text="${#numbers.formatDecimal(attendanceService.calculateTotalHours(a),1,2)} + 'h'">8.00h</td></tr></tbody></table></div></div>
+            <div class="print-actions"><a class="btn btn-secondary" th:href="@{/cham-cong(employeeId=${selectedEmployee.id},month=${month})}">Quay lại</a><button class="btn btn-primary" type="button" onclick="window.print()">In / Lưu PDF</button></div>
+            <div class="print-only" style="margin-top:35px;text-align:center">Phiếu lương được trích xuất từ hệ thống quản lý chấm công.</div>
+        </div></section>
+    </main>
+</div>
+</body>
+</html>

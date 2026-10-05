@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isAdmin ? 'Chấm công | QNHRM' : 'Chấm công của tôi | QNHRM'}">QNHRM</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <style>
+        .attendance-page{max-width:1550px}
+        .attendance-filter{display:grid;grid-template-columns:1.35fr .72fr auto;gap:12px;align-items:end;padding:17px 18px;margin-bottom:14px}
+        .staff-profile{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid #dce8fa;background:linear-gradient(135deg,#eef5ff,#f9fbff);border-radius:16px;margin-bottom:14px}
+        .staff-profile .avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:#2c64f2;color:#fff;font-weight:900;font-size:18px;flex:none}.profile-name{font-size:16px;font-weight:900}.profile-meta{font-size:11px;color:var(--muted);margin-top:3px}
+        .personal-note{margin-left:auto;text-align:right;color:#61718b;font-size:11px;line-height:1.5}
+        .attendance-columns{display:grid;grid-template-columns:minmax(420px,.92fr) minmax(580px,1.08fr);gap:14px;align-items:start}
+        .entry-card{padding:18px}.entry-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}.entry-head h2{margin:0;font-size:18px}.entry-head p{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.5}.entry-badge{padding:9px 11px;border-radius:12px;background:#eef4ff;color:#2059d8;font-size:10px;font-weight:900;white-space:nowrap}
+        .entry-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.entry-grid .full{grid-column:1/-1}.shift-block{border:1px solid var(--line);border-radius:13px;padding:12px;background:#fbfdff}.shift-block.morning{background:#eef7ff}.shift-block.afternoon{background:#fff6eb}.shift-block.evening{background:#f6f2ff}.shift-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:900;margin-bottom:10px}.shift-dot{width:8px;height:8px;border-radius:50%;background:#3b82f6}.afternoon .shift-dot{background:#f59e0b}.evening .shift-dot{background:#7c3aed}.shift-times{display:grid;grid-template-columns:1fr 1fr;gap:10px}.readonly-field{background:#f5f8fc!important}.entry-help{padding:9px 10px;border-radius:10px;background:#f8fafc;color:#62718a;font-size:10px;line-height:1.45;border:1px solid #edf1f6}.entry-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}.save-wide{min-width:170px}
+        .history-card{padding:18px}.history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:13px}.history-head h2{font-size:17px;margin:0}.history-head p{font-size:10px;color:var(--muted);margin:4px 0 0}.history-actions{display:flex;gap:7px}
+        .mobile-history{display:none}
+        .empty-state{padding:68px 20px;text-align:center}.empty-state .empty-icon{width:54px;height:54px;border-radius:16px;background:#eff5ff;color:#2c64f2;display:grid;place-items:center;margin:0 auto 12px;font-size:24px}.empty-state strong{display:block;font-size:16px;margin-bottom:4px}.empty-state span{font-size:12px;color:var(--muted)}
+        .mobile-sticky{display:none}
+        @media(max-width:1050px){.attendance-columns{grid-template-columns:1fr}.entry-card{order:0}.history-card{order:1}}
+        @media(max-width:780px){.attendance-filter{grid-template-columns:1fr 1fr}.attendance-filter .filter-btn{grid-column:1/-1}.staff-profile{align-items:flex-start}.personal-note{margin-left:0;text-align:left}.entry-grid{grid-template-columns:1fr}.entry-grid .full{grid-column:1}.shift-times{grid-template-columns:1fr 1fr}.entry-actions{flex-direction:column;align-items:stretch}.save-wide{width:100%}.table-wrap{display:none}.mobile-history{display:block}.mobile-history-list{display:grid;gap:10px}.mobile-day-card{padding:13px;border:1px solid var(--line);border-radius:14px;background:#fff}.mobile-day-top{display:flex;justify-content:space-between;gap:8px;margin-bottom:9px}.mobile-day-date{font-size:12px;font-weight:900}.mobile-day-hours{font-size:12px;font-weight:900;color:var(--primary)}.mobile-shift{display:grid;grid-template-columns:52px 1fr;gap:7px;padding:7px 0;border-top:1px solid #eef2f7;font-size:11px}.mobile-shift strong{color:#5b6a82}.mobile-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.mobile-meta-box{padding:9px;background:#f8fafc;border-radius:10px}.mobile-meta-box small{display:block;color:#71809a;font-size:9px}.mobile-meta-box strong{font-size:10px;word-break:break-word}.mobile-note{padding:9px;background:#f8fafc;border-radius:10px;margin-top:9px;font-size:10px;color:#596982;line-height:1.45}.mobile-sticky{position:fixed;left:10px;right:10px;bottom:10px;display:flex;gap:8px;padding:7px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(15,23,42,.14);z-index:35}.mobile-sticky>*{flex:1}.attendance-page{padding-bottom:78px}}
+        @media(max-width:520px){.attendance-filter{grid-template-columns:1fr}.attendance-filter .filter-btn{grid-column:auto}.staff-profile{padding:12px}.entry-card,.history-card{padding:14px}.history-head{flex-direction:column}.history-actions{width:100%}.history-actions .btn{flex:1}.entry-head{flex-direction:column}.entry-badge{width:100%}.mobile-meta{grid-template-columns:1fr}.topbar{padding:0 10px}}
+    </style>
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+</head>
+<body>
+<div class="shell">
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <img class="brand-logo-img" th:src="@{/images/qnhrm-logo.png}" alt="QNHRM">
+            <div><div class="brand-title">QNHRM</div><div class="brand-sub">QUẢN LÝ NHÂN SỰ &amp; CHẤM CÔNG</div></div>
+        </div>
+        <nav class="nav">
+            <div class="nav-label">Menu</div>
+            <a href="/"><span class="nav-icon">⌂</span>Tổng quan</a>
+            <a href="/nhan-vien" th:if="${isAdmin}"><span class="nav-icon">♙</span>Nhân viên</a>
+            <a href="/cham-cong" class="active"><span class="nav-icon">◷</span>Chấm công</a>
+            <a href="/phieu-luong"><span class="nav-icon">▤</span>Phiếu lương</a>
+            <a href="/ung-luong"><span class="nav-icon">₫</span>Ứng lương</a>
+            <a href="/bao-cao" th:if="${isAdmin}"><span class="nav-icon">▥</span>Báo cáo tháng</a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="account-mini">
+                <div class="avatar" style="width:32px;height:32px;border-radius:50%;background:#2f6ef4;display:grid;place-items:center;font-weight:900" th:text="${selectedEmployee != null and selectedEmployee.fullName != null ? #strings.substring(selectedEmployee.fullName,0,1).toUpperCase() : 'U'}">U</div>
+                <div><strong th:text="${selectedEmployee != null ? selectedEmployee.fullName : 'Tài khoản'}">Tài khoản</strong><span th:text="${isAdmin ? 'Quản trị viên' : 'Nhân viên'}">Nhân viên</span></div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="content-shell">
+        <header class="topbar">
+            <button class="mobile-menu-btn" type="button" onclick="toggleSidebar()" aria-label="Mở menu">☰</button>
+            <div class="topbar-title" th:text="${isAdmin ? 'Quản lý chấm công' : 'Chấm công của tôi'}">Chấm công của tôi</div>
+            <div class="topbar-actions">
+                <div class="user-chip">
+                    <div class="avatar">T</div>
+                    <div class="user-text"><strong th:text="${currentUser}">admin</strong><span th:text="${isAdmin ? 'Quản trị viên' : 'Nhân viên'}">Nhân viên</span></div>
+                </div>
+                <a class="btn btn-secondary btn-sm" href="/doi-mat-khau">Đổi mật khẩu</a>
+                <form method="post" th:action="@{/logout}"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button class="btn btn-secondary btn-sm" type="submit">Đăng xuất</button></form>
+            </div>
+        </header>
+
+        <main class="page attendance-page">
+            <section class="hero">
+                <div>
+                    <div class="eyebrow" th:text="${isAdmin ? 'ATTENDANCE MANAGEMENT' : 'MY ATTENDANCE'}">MY ATTENDANCE</div>
+                    <h1 th:text="${isAdmin ? (selectedEmployee != null ? 'Chấm công · ' + selectedEmployee.fullName : 'Quản lý chấm công') : 'Chấm công của tôi'}">Chấm công của tôi</h1>
+                    <p th:text="${isAdmin ? 'Theo dõi thời gian làm việc, hồ sơ và tiền công theo từng nhân viên.' : 'Theo dõi ngày công, giờ làm và thông tin lương của bạn theo từng tháng.'}">Theo dõi ngày công, giờ làm và thông tin lương của bạn theo từng tháng.</p>
+                </div>
+                <div class="hero-actions" th:if="${isAdmin}">
+                    <a class="btn btn-secondary" th:if="${selectedEmployee != null}" th:href="@{/cham-cong/xuat-excel(employeeId=${employeeId},month=${selectedMonth})}">↓ Xuất bảng</a>
+                    <a class="btn btn-primary" th:href="@{/cham-cong(employeeId=${employeeId},month=${selectedMonth},add=true)}">＋ Thêm chấm công</a>
+                </div>
+            </section>
+
+            <div th:if="${error != null}" class="flash flash-error" th:text="${error}">Có lỗi xảy ra.</div>
+            <div th:if="${success != null}" class="flash flash-success" th:text="${success}">Thành công.</div>
+
+            <section class="staff-profile" th:unless="${isAdmin}">
+                <div class="avatar" th:text="${selectedEmployee != null ? #strings.substring(selectedEmployee.fullName,0,1).toUpperCase() : 'U'}">T</div>
+                <div><div class="profile-name" th:text="${selectedEmployee != null ? selectedEmployee.fullName : 'Nhân viên'}">Thành Chương</div><div class="profile-meta"><span th:text="${selectedEmployee != null and selectedEmployee.position != null ? selectedEmployee.position : 'Nhân viên'}">Nhân viên</span></div></div>
+                <div class="personal-note">Chế độ xem cá nhân<br>Chỉ hiển thị dữ liệu của tài khoản đang đăng nhập</div>
+            </section>
+
+            <section class="card attendance-filter">
+                <div class="field" th:if="${isAdmin}"><label for="employeeId">Nhân viên</label><select class="control" id="employeeId" name="employeeId" form="filterForm"><option value="">— Chọn nhân viên —</option><option th:each="employee : ${employees}" th:value="${employee.id}" th:text="${employee.fullName}" th:selected="${selectedEmployee != null and selectedEmployee.id == employee.id}"></option></select></div>
+                <div class="field" th:unless="${isAdmin}"><label>Nhân viên</label><input class="control readonly-field" type="text" readonly th:value="${selectedEmployee != null ? selectedEmployee.fullName : ''}"></div>
+                <div class="field"><label for="month">Tháng</label><input class="control" type="month" id="month" name="month" form="filterForm" th:value="${selectedMonth}" required></div>
+                <button class="btn btn-primary filter-btn" form="filterForm" type="submit">Tra cứu</button>
+                <form id="filterForm" method="get" action="/cham-cong"></form>
+            </section>
+
+            <section class="grid-4" style="margin-bottom:14px">
+                <div class="card stat"><div class="stat-top"><div class="stat-label">Tổng giờ</div><div class="stat-icon">◷</div></div><div class="stat-value"><span th:text="${#numbers.formatDecimal(totalHours,1,2)}">176.50</span>h</div><div class="stat-note">Tổng thời gian làm việc</div></div>
+                <div class="card stat"><div class="stat-top"><div class="stat-label">Ngày công</div><div class="stat-icon">▣</div></div><div class="stat-value" th:text="${totalDays}">22</div><div class="stat-note">Số ngày có chấm công</div></div>
+                <div class="card stat"><div class="stat-top"><div class="stat-label">Lương/giờ</div><div class="stat-icon">₫</div></div><div class="stat-value"><span th:text="${#numbers.formatDecimal(hourlyRate,0,'POINT',0,'COMMA')}">50,000</span></div><div class="stat-note">VNĐ / giờ</div></div>
+                <div class="card stat"><div class="stat-top"><div class="stat-label">Thực lĩnh dự kiến</div><div class="stat-icon">✓</div></div><div class="stat-value"><span th:text="${#numbers.formatDecimal(netSalary,0,'POINT',0,'COMMA')}">8,325,000</span></div><div class="stat-note">Sau khấu trừ ứng lương</div></div>
+            </section>
+
+            <section class="attendance-columns">
+                <div>
+                    <section class="card entry-card" th:if="${isAdmin or today != null}">
+                        <div class="entry-head"><div><h2 th:text="${isAdmin ? (editAttendance != null ? 'Sửa chấm công' : 'Nhập chấm công') : 'Nhập chấm công'}">Nhập chấm công</h2><p th:text="${isAdmin ? 'Nhập dữ liệu cho nhân viên được chọn. Ca tối hỗ trợ qua 00:00.' : 'Nhập thời gian làm việc cho ngày hôm nay. Dữ liệu chỉ thuộc tài khoản của bạn.'}">Nhập thời gian làm việc.</p></div><div class="entry-badge" th:text="${isAdmin ? (selectedMonth != null ? 'Tháng ' + selectedMonth : 'Theo tháng') : (today != null ? #temporals.format(today,'dd/MM/yyyy') : '')}">Tháng 09/2026</div></div>
+                        <form method="post" th:action="@{/cham-cong/luu}" th:if="${isAdmin}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" name="id" th:value="${editAttendance != null ? editAttendance.id : ''}">
+                            <div class="entry-grid">
+                                <div class="field"><label for="formEmployeeId">Nhân viên</label><select class="control" id="formEmployeeId" name="employeeId" required><option value="">— Chọn nhân viên —</option><option th:each="employee : ${employees}" th:value="${employee.id}" th:text="${employee.fullName}" th:selected="${editAttendance != null and editAttendance.employee != null and editAttendance.employee.id == employee.id}"></option></select></div>
+                                <div class="field"><label for="workDate">Ngày</label><input class="control" id="workDate" type="date" name="workDate" required th:value="${editAttendance != null ? editAttendance.workDate : ''}"></div>
+                                <div class="field full"><label for="dossierCount">Hồ sơ</label><input class="control" id="dossierCount" type="text" name="dossierCount" maxlength="1000" placeholder="Ví dụ: G123-G210, G215-G230" th:value="${editAttendance != null ? editAttendance.dossierCount : ''}"><div class="helper">Nhập mã hồ sơ, khoảng hồ sơ hoặc nhiều nhóm hồ sơ.</div></div>
+                                <div class="shift-block morning"><div class="shift-title"><span class="shift-dot"></span>Ca sáng</div><div class="shift-times"><div class="field"><label>Vào sáng</label><input class="control time-input" type="text" name="morningIn" maxlength="5" placeholder="08:00" th:value="${editAttendance != null and editAttendance.morningIn != null ? #temporals.format(editAttendance.morningIn,'HH:mm') : ''}"></div><div class="field"><label>Ra sáng</label><input class="control time-input" type="text" name="morningOut" maxlength="5" placeholder="12:00" th:value="${editAttendance != null and editAttendance.morningOut != null ? #temporals.format(editAttendance.morningOut,'HH:mm') : ''}"></div></div></div>
+                                <div class="shift-block afternoon"><div class="shift-title"><span class="shift-dot"></span>Ca chiều</div><div class="shift-times"><div class="field"><label>Vào chiều</label><input class="control time-input" type="text" name="afternoonIn" maxlength="5" placeholder="13:30" th:value="${editAttendance != null and editAttendance.afternoonIn != null ? #temporals.format(editAttendance.afternoonIn,'HH:mm') : ''}"></div><div class="field"><label>Ra chiều</label><input class="control time-input" type="text" name="afternoonOut" maxlength="5" placeholder="17:30" th:value="${editAttendance != null and editAttendance.afternoonOut != null ? #temporals.format(editAttendance.afternoonOut,'HH:mm') : ''}"></div></div></div>
+                                <div class="shift-block evening"><div class="shift-title"><span class="shift-dot"></span>Ca tối</div><div class="shift-times"><div class="field"><label>Vào tối</label><input class="control time-input" type="text" name="eveningIn" maxlength="5" placeholder="19:00" th:value="${editAttendance != null and editAttendance.eveningIn != null ? #temporals.format(editAttendance.eveningIn,'HH:mm') : ''}"></div><div class="field"><label>Ra tối</label><input class="control time-input" type="text" name="eveningOut" maxlength="5" placeholder="21:00" th:value="${editAttendance != null and editAttendance.eveningOut != null ? #temporals.format(editAttendance.eveningOut,'HH:mm') : ''}"></div></div></div>
+                                <div class="field"><label>Đi muộn (phút)</label><input class="control" type="number" min="0" name="lateMinutes" th:value="${editAttendance != null ? editAttendance.lateMinutes : 0}"></div><div class="field"><label>Về sớm (phút)</label><input class="control" type="number" min="0" name="earlyLeaveMinutes" th:value="${editAttendance != null ? editAttendance.earlyLeaveMinutes : 0}"></div>
+                                <div class="field full"><label>Ghi chú</label><textarea class="control" style="height:84px;padding:10px 12px" name="note" placeholder="Nhập ghi chú nếu có..." th:text="${editAttendance != null ? editAttendance.note : ''}"></textarea></div>
+                            </div>
+                            <div class="entry-actions"><span class="helper">Tổng giờ được hệ thống tính tự động từ các ca đã nhập.</span><div style="display:flex;gap:8px"><a class="btn btn-secondary" th:href="@{/cham-cong(employeeId=${employeeId},month=${selectedMonth})}">Hủy</a><button class="btn btn-success save-wide" type="submit" th:text="${editAttendance != null ? 'Cập nhật' : 'Lưu chấm công'}">Lưu chấm công</button></div></div>
+                        </form>
+
+                        <form method="post" th:action="@{/cham-cong/tu-nhap}" th:unless="${isAdmin}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <div class="entry-grid">
+                                <div class="field"><label for="selfWorkDate">Ngày</label><input class="control readonly-field" id="selfWorkDate" type="date" name="workDate" readonly required th:value="${today != null ? today : ''}"></div>
+                                <div class="field"><label for="selfDossierCount">Hồ sơ</label><input class="control" id="selfDossierCount" type="text" name="dossierCount" maxlength="1000" placeholder="G123-G210, G215-G230" th:value="${todayAttendance != null ? todayAttendance.dossierCount : ''}"></div>
+                                <div class="shift-block morning"><div class="shift-title"><span class="shift-dot"></span>Ca sáng</div><div class="shift-times"><div class="field"><label>Vào sáng</label><input class="control time-input" type="text" name="morningIn" maxlength="5" placeholder="08:00" th:value="${todayAttendance != null and todayAttendance.morningIn != null ? #temporals.format(todayAttendance.morningIn,'HH:mm') : ''}"></div><div class="field"><label>Ra sáng</label><input class="control time-input" type="text" name="morningOut" maxlength="5" placeholder="12:00" th:value="${todayAttendance != null and todayAttendance.morningOut != null ? #temporals.format(todayAttendance.morningOut,'HH:mm') : ''}"></div></div></div>
+                                <div class="shift-block afternoon"><div class="shift-title"><span class="shift-dot"></span>Ca chiều</div><div class="shift-times"><div class="field"><label>Vào chiều</label><input class="control time-input" type="text" name="afternoonIn" maxlength="5" placeholder="13:30" th:value="${todayAttendance != null and todayAttendance.afternoonIn != null ? #temporals.format(todayAttendance.afternoonIn,'HH:mm') : ''}"></div><div class="field"><label>Ra chiều</label><input class="control time-input" type="text" name="afternoonOut" maxlength="5" placeholder="17:30" th:value="${todayAttendance != null and todayAttendance.afternoonOut != null ? #temporals.format(todayAttendance.afternoonOut,'HH:mm') : ''}"></div></div></div>
+                                <div class="shift-block evening"><div class="shift-title"><span class="shift-dot"></span>Ca tối</div><div class="shift-times"><div class="field"><label>Vào tối</label><input class="control time-input" type="text" name="eveningIn" maxlength="5" placeholder="19:00" th:value="${todayAttendance != null and todayAttendance.eveningIn != null ? #temporals.format(todayAttendance.eveningIn,'HH:mm') : ''}"></div><div class="field"><label>Ra tối</label><input class="control time-input" type="text" name="eveningOut" maxlength="5" placeholder="21:00" th:value="${todayAttendance != null and todayAttendance.eveningOut != null ? #temporals.format(todayAttendance.eveningOut,'HH:mm') : ''}"></div></div></div>
+                                <div class="field"><label>Đi muộn (phút)</label><input class="control" type="number" min="0" name="lateMinutes" th:value="${todayAttendance != null ? todayAttendance.lateMinutes : 0}"></div><div class="field"><label>Về sớm (phút)</label><input class="control" type="number" min="0" name="earlyLeaveMinutes" th:value="${todayAttendance != null ? todayAttendance.earlyLeaveMinutes : 0}"></div>
+                                <div class="field full"><label>Ghi chú</label><textarea class="control" style="height:84px;padding:10px 12px" name="note" placeholder="Nhập ghi chú nếu có..." th:text="${todayAttendance != null ? todayAttendance.note : ''}"></textarea></div>
+                            </div>
+                            <div class="entry-actions"><span class="helper">Bạn chỉ được nhập chấm công cho ngày hiện tại của tài khoản này.</span><button class="btn btn-primary save-wide" type="submit">Lưu chấm công</button></div>
+                        </form>
+                    </section>
+                </div>
+
+                <section class="card history-card">
+                    <div class="history-head"><div><h2 th:text="${isAdmin ? (selectedEmployee != null ? 'Lịch sử chấm công · ' + selectedEmployee.fullName : 'Lịch sử chấm công') : 'Lịch sử chấm công của tôi'}">Lịch sử chấm công</h2><p th:text="${isAdmin ? 'Danh sách dữ liệu theo ngày trong tháng được chọn.' : 'Dữ liệu chỉ thuộc tài khoản đang đăng nhập.'}">Danh sách dữ liệu.</p></div><div class="history-actions"><span class="month-badge" th:text="${selectedMonth}">2026-09</span><a class="btn btn-success btn-sm" th:if="${isAdmin and selectedEmployee != null}" th:href="@{/cham-cong/xuat-excel(employeeId=${employeeId},month=${selectedMonth})}">▣ Xuất Excel</a></div></div>
+                    <div class="table-wrap"><table class="table"><thead><tr><th>STT</th><th>Ngày</th><th>Vào sáng</th><th>Ra sáng</th><th>Vào chiều</th><th>Ra chiều</th><th>Vào tối</th><th>Ra tối</th><th>Tổng giờ</th><th>Hồ sơ</th><th>Muộn</th><th>Về sớm</th><th>Ghi chú</th><th th:if="${isAdmin}">Thao tác</th></tr></thead><tbody><tr th:each="record,stat : ${records}"><td th:text="${stat.count}">1</td><td class="day-cell" th:text="${#temporals.format(record.workDate,'dd/MM/yyyy')}">01/09/2026</td><td th:text="${record.morningIn != null ? #temporals.format(record.morningIn,'HH:mm') : '-'}">08:00</td><td th:text="${record.morningOut != null ? #temporals.format(record.morningOut,'HH:mm') : '-'}">12:00</td><td th:text="${record.afternoonIn != null ? #temporals.format(record.afternoonIn,'HH:mm') : '-'}">13:30</td><td th:text="${record.afternoonOut != null ? #temporals.format(record.afternoonOut,'HH:mm') : '-'}">17:30</td><td th:text="${record.eveningIn != null ? #temporals.format(record.eveningIn,'HH:mm') : '-'}">19:00</td><td th:text="${record.eveningOut != null ? #temporals.format(record.eveningOut,'HH:mm') : '-'}">21:00</td><td class="hours-cell" th:text="${#numbers.formatDecimal(attendanceService.calculateTotalHours(record),1,2)}">8.00</td><td class="left" th:text="${record.dossierCount != null and !record.dossierCount.isBlank() ? record.dossierCount : '-'}">G123-G210</td><td th:class="${record.lateMinutes != null and record.lateMinutes > 0 ? 'late' : ''}" th:text="${record.lateMinutes != null ? record.lateMinutes : 0}">0</td><td th:class="${record.earlyLeaveMinutes != null and record.earlyLeaveMinutes > 0 ? 'early' : ''}" th:text="${record.earlyLeaveMinutes != null ? record.earlyLeaveMinutes : 0}">0</td><td class="left" th:text="${record.note != null and !record.note.isBlank() ? record.note : '-'}">-</td><td th:if="${isAdmin}"><div style="display:flex;justify-content:center;gap:6px"><a class="btn btn-warning btn-sm" th:href="@{/cham-cong(employeeId=${selectedEmployee.id},month=${selectedMonth},editId=${record.id})}">Sửa</a><form method="post" th:action="@{/cham-cong/xoa}" style="margin:0" onsubmit="return confirm('Bạn có chắc muốn xóa bản ghi chấm công này?')"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><input type="hidden" name="id" th:value="${record.id}"><input type="hidden" name="employeeId" th:value="${selectedEmployee.id}"><input type="hidden" name="month" th:value="${selectedMonth}"><button class="btn btn-danger btn-sm" type="submit">Xóa</button></form></div></td></tr></tbody></table></div>
+                    <div class="mobile-history" th:unless="${isAdmin}"><div class="mobile-history-list" th:if="${records != null and !#lists.isEmpty(records)}"><article class="mobile-day-card" th:each="record : ${records}"><div class="mobile-day-top"><div class="mobile-day-date" th:text="${#temporals.format(record.workDate,'EEEE, dd/MM/yyyy')}">Thứ Hai, 01/09/2026</div><div class="mobile-day-hours" th:text="${#numbers.formatDecimal(attendanceService.calculateTotalHours(record),1,2) + ' giờ'}">8.00 giờ</div></div><div class="mobile-shift"><strong>Sáng</strong><span th:text="${(record.morningIn != null ? #temporals.format(record.morningIn,'HH:mm') : '--:--') + ' → ' + (record.morningOut != null ? #temporals.format(record.morningOut,'HH:mm') : '--:--')}">08:00 → 12:00</span></div><div class="mobile-shift"><strong>Chiều</strong><span th:text="${(record.afternoonIn != null ? #temporals.format(record.afternoonIn,'HH:mm') : '--:--') + ' → ' + (record.afternoonOut != null ? #temporals.format(record.afternoonOut,'HH:mm') : '--:--')}">13:30 → 17:30</span></div><div class="mobile-shift"><strong>Tối</strong><span th:text="${(record.eveningIn != null ? #temporals.format(record.eveningIn,'HH:mm') : '--:--') + ' → ' + (record.eveningOut != null ? #temporals.format(record.eveningOut,'HH:mm') : '--:--')}">19:00 → 21:00</span></div><div class="mobile-meta"><div class="mobile-meta-box"><small>Hồ sơ</small><strong th:text="${record.dossierCount != null and !record.dossierCount.isBlank() ? record.dossierCount : '-'}">G123-G210</strong></div><div class="mobile-meta-box"><small>Muộn / Về sớm</small><strong th:text="${(record.lateMinutes != null ? record.lateMinutes : 0) + ' / ' + (record.earlyLeaveMinutes != null ? record.earlyLeaveMinutes : 0) + ' phút'}">0 / 0 phút</strong></div></div><div class="mobile-note" th:if="${record.note != null and !record.note.isBlank()}"><strong>Ghi chú:</strong> <span th:text="${record.note}">-</span></div></article></div></div>
+                    <div class="empty-state" th:if="${records == null or #lists.isEmpty(records)}"><div class="empty-icon">◷</div><strong th:text="${selectedEmployee == null ? 'Chưa chọn dữ liệu' : 'Chưa có chấm công'}">Chưa có chấm công</strong><span th:text="${selectedEmployee == null ? 'Chọn nhân viên và tháng để bắt đầu tra cứu.' : 'Tháng này chưa có bản ghi chấm công.'}">Tháng này chưa có bản ghi chấm công.</span></div>
+                </section>
+            </section>
+
+            <div class="mobile-sticky" th:unless="${isAdmin}"><a class="btn btn-secondary" href="/phieu-luong">Phiếu lương</a><button class="btn btn-primary" type="button" onclick="document.querySelector('form[action*=tu-nhap]')?.requestSubmit()">Lưu chấm công</button></div>
+        </main>
+    </div>
+</div>
+<script>
+function toggleSidebar(){document.getElementById('sidebar')?.classList.toggle('open')}
+document.addEventListener('click',function(e){const s=document.getElementById('sidebar');const b=e.target.closest('.mobile-menu-btn');if(window.innerWidth<=780&&s?.classList.contains('open')&&!s.contains(e.target)&&!b)s.classList.remove('open')});
+document.querySelectorAll('.time-input').forEach(function(input){input.addEventListener('input',function(){let v=this.value.replace(/\D/g,'').slice(0,4);if(v.length>2)v=v.slice(0,2)+':'+v.slice(2);this.value=v;})});
+</script>
+</body>
+</html>

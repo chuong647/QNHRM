@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng quan | QNHRM</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+</head>
+<body>
+<div class="shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <img class="brand-logo-img" th:src="@{/images/qnhrm-logo.png}" alt="QNHRM">
+            <div><div class="brand-title">QNHRM</div><div class="brand-sub">QUẢN LÝ NHÂN SỰ &amp; CHẤM CÔNG</div></div>
+        </div>
+        <nav class="nav">
+            <div class="nav-label">Điều hướng</div>
+            <a class="active" href="/"><span class="nav-icon">⌂</span>Tổng quan</a>
+            <a th:if="${isAdmin}" href="/nhan-vien"><span class="nav-icon">♙</span>Nhân viên</a>
+            <a href="/bao-cao" th:if="${isAdmin}">Báo cáo tháng</a>
+            <a href="/cham-cong"><span class="nav-icon">◫</span>Chấm công</a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="account-mini">
+                <strong th:text="${currentUser}">admin</strong>
+                <span th:text="${isAdmin ? 'Quản trị viên' : 'Nhân viên'}">Quản trị viên</span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="content-shell">
+        <header class="topbar">
+            <div class="topbar-title">Tổng quan hệ thống</div>
+            <div class="topbar-actions">
+                <a class="btn btn-secondary btn-sm" href="/doi-mat-khau">Đổi mật khẩu</a>
+                <form method="post" th:action="@{/logout}" style="margin:0">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button class="btn btn-secondary btn-sm" type="submit">Đăng xuất</button>
+                </form>
+            </div>
+        </header>
+
+        <main class="page">
+            <section class="hero">
+                <div>
+                    <div class="eyebrow">Dashboard</div>
+                    <h1>Xin chào, <span th:text="${currentUser}">admin</span> 👋</h1>
+                    <p>Theo dõi tình trạng chấm công và quản lý ngày công ngay trên một màn hình.</p>
+                </div>
+                <div class="hero-actions">
+                    <a class="btn btn-primary" href="/cham-cong">Mở bảng chấm công</a>
+                </div>
+            </section>
+
+            <section class="grid-4" style="margin-bottom:16px">
+                <div class="card stat"><div class="stat-top"><div class="stat-label">Nhân viên hoạt động</div><div class="stat-icon">👥</div></div><div class="stat-value" th:text="${employeeCount}">0</div><div class="stat-note">Tài khoản đang hoạt động</div></div>
+                <div class="card stat"><div class="stat-top"><div class="stat-label">Ngày chấm công</div><div class="stat-icon">◷</div></div><div class="stat-value" th:text="${attendanceDays}">0</div><div class="stat-note">Trong tháng hiện tại</div></div>
+                <div class="card stat"><div class="stat-top"><div class="stat-label">Tổng giờ</div><div class="stat-icon">⌚</div></div><div class="stat-value"><span th:text="${#numbers.formatDecimal(totalHours,1,2)}">0.00</span>h</div><div class="stat-note">Tổng giờ đã ghi nhận</div></div>
+                <div class="card stat"><div class="stat-top"><div class="stat-label">Hồ sơ ghi nhận</div><div class="stat-icon">▤</div></div><div class="stat-value" th:text="${totalDossiers}">0</div><div class="stat-note">Dòng chấm công có hồ sơ</div></div>
+            </section>
+
+            <section class="card card-pad" style="margin-bottom:16px">
+                <div class="section-title"><h2>Truy cập nhanh</h2><span>Thao tác thường dùng</span></div>
+                <div class="quick-grid">
+                    <a class="quick" href="/cham-cong"><div class="quick-icon">◫</div><div><strong>Tra cứu chấm công</strong><span>Xem theo nhân viên và tháng</span></div></a>
+                    <a class="quick" th:if="${isAdmin}" href="/nhan-vien"><div class="quick-icon">♙</div><div><strong>Quản lý nhân viên</strong><span>Tạo và quản lý tài khoản</span></div></a>
+                    <a class="quick" href="/cham-cong"><div class="quick-icon">＋</div><div><strong>Nhập chấm công</strong><span>Thêm hoặc chỉnh sửa dữ liệu</span></div></a>
+                    <a class="quick" href="/doi-mat-khau"><div class="quick-icon">🔒</div><div><strong>Bảo mật tài khoản</strong><span>Đổi mật khẩu đăng nhập</span></div></a>
+                </div>
+            </section>
+
+            <section class="grid-3">
+                <div class="card card-pad"><div class="section-title"><h2>Quy trình</h2></div><p style="color:var(--muted);font-size:13px;line-height:1.7;margin:0">Chọn nhân viên → chọn tháng → kiểm tra ca sáng/chiều/tối → lưu dữ liệu. Tổng giờ được tính tự động.</p></div>
+                <div class="card card-pad"><div class="section-title"><h2>Hồ sơ</h2></div><p style="color:var(--muted);font-size:13px;line-height:1.7;margin:0">Trường hồ sơ hỗ trợ chuỗi như <strong>G123-G210</strong> hoặc nhiều nhóm hồ sơ trong cùng một ngày.</p></div>
+                <div class="card card-pad"><div class="section-title"><h2>Phân quyền</h2></div><p style="color:var(--muted);font-size:13px;line-height:1.7;margin:0" th:text="${isAdmin ? 'ADMIN có quyền nhập, sửa và xóa chấm công.' : 'STAFF chỉ xem dữ liệu chấm công của chính mình.'}">ADMIN có quyền nhập, sửa và xóa chấm công.</p></div>
+            </section>
+        </main>
+    </div>
+</div>
+</body>
+</html>
