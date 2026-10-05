@@ -1,0 +1,16 @@
+QNHRM RAILWAY VARIABLES
+
+MYSQLHOST=${{MySQL.MYSQLHOST}}
+MYSQLPORT=${{MySQL.MYSQLPORT}}
+MYSQLDATABASE=${{MySQL.MYSQLDATABASE}}
+MYSQLUSER=${{MySQL.MYSQLUSER}}
+MYSQLPASSWORD=${{MySQL.MYSQLPASSWORD}}
+COOKIE_SECURE=true
+DB_POOL_MAX=8
+DB_POOL_MIN=2
+APP_ADMIN_USERNAME=admin
+APP_ADMIN_PASSWORD=<mat-khau-manh-tu-12-ky-tu>
+
+Lưu ý:
+- `MySQL` phải trùng tên service MySQL trên Railway.
+- Không lưu mật khẩu thật trong file này hoặc GitHub.

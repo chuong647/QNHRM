@@ -1,0 +1,4 @@
+QNHRM Production V2
+Build target: Spring Boot + MySQL + Thymeleaf
+Brand: QNHRM
+Rules: no Zalo / no department / no OT / no public self-registration

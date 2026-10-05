@@ -1,0 +1,9 @@
+.git
+.idea
+.vscode
+target
+*.zip
+*.log
+.env
+.env.*
+node_modules

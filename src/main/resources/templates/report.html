@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Báo cáo tháng | QNHRM</title>
+    <link rel="stylesheet" href="/css/app.css">
+    <style>
+        .report-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin:18px 0}
+        .report-card{background:#fff;border:1px solid #e6eaf0;border-radius:16px;padding:18px;box-shadow:0 5px 20px rgba(15,23,42,.05)}
+        .report-card .label{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+        .report-card .value{font-size:26px;font-weight:800;margin-top:8px}
+        .toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+        .toolbar .field{min-width:220px}
+        .toolbar label{display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px}
+        .toolbar input{width:100%}
+        .table-wrap{overflow:auto}
+        table{width:100%;border-collapse:collapse;min-width:1180px}
+        th,td{padding:12px 10px;border-bottom:1px solid #eef2f7;text-align:right;white-space:nowrap;font-size:13px}
+        th{background:#f8fafc;color:#475569;text-transform:uppercase;font-size:11px;letter-spacing:.04em}
+        th:first-child,td:first-child,th:nth-child(2),td:nth-child(2),th:nth-child(3),td:nth-child(3),th:nth-child(4),td:nth-child(4){text-align:left}
+        .money{font-weight:700}
+        .net{font-weight:800}
+        .btn-link{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border-radius:10px;text-decoration:none;border:1px solid #dbe2ea;color:#0f172a;background:#fff}
+        @media(max-width:1000px){.report-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:560px){.report-grid{grid-template-columns:1fr}.toolbar .field{min-width:100%}}
+    </style>
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand"><img class="brand-logo-img" src="/images/qnhrm-logo.png" alt="QNHRM"><div><div class="brand-title">QNHRM</div><div class="brand-sub">QUẢN LÝ NHÂN SỰ &amp; CHẤM CÔNG</div></div></div>
+        <nav class="menu">
+            <div class="menu-title">MENU</div>
+            <a href="/">Tổng quan</a>
+            <a href="/nhan-vien">Nhân viên</a>
+            <a href="/cham-cong">Chấm công</a>
+            <a href="/ung-luong">Ứng lương</a>
+            <a href="/bao-cao" class="active">Báo cáo tháng</a>
+        </nav>
+        <div class="logout"><a href="/doi-mat-khau">Đổi mật khẩu</a></div>
+    </aside>
+    <main class="main">
+        <header class="topbar"><div class="page-title">Báo cáo tháng</div><div class="user"><span th:text="${currentUser}">admin</span></div></header>
+        <section class="content">
+            <div class="page-header">
+                <div><span class="eyebrow">Payroll report</span><h1 th:text="${monthLabel}">Tháng 09/2026</h1><p>Tổng hợp giờ công, ứng lương và thực lĩnh của toàn bộ nhân viên đang hoạt động.</p></div>
+            </div>
+            <div class="card" style="padding:18px">
+                <form method="get" action="/bao-cao" class="toolbar">
+                    <div class="field"><label for="month">Tháng báo cáo</label><input id="month" name="month" type="month" th:value="${month}" required></div>
+                    <button class="btn btn-primary" type="submit">Xem báo cáo</button>
+                    <a class="btn-link" th:href="@{/bao-cao/xuat-excel(month=${month})}">Xuất Excel</a>
+                    <a class="btn-link" th:href="@{/cham-cong}">Quay lại chấm công</a>
+                </form>
+            </div>
+            <div class="report-grid">
+                <div class="report-card"><div class="label">Nhân viên</div><div class="value" th:text="${employeeCount}">0</div></div>
+                <div class="report-card"><div class="label">Ngày công</div><div class="value" th:text="${totalDays}">0</div></div>
+                <div class="report-card"><div class="label">Tổng giờ</div><div class="value" th:text="${#numbers.formatDecimal(totalHours,1,2)} + 'h'">0.00h</div></div>
+                <div class="report-card"><div class="label">Tổng ứng</div><div class="value" th:text="${#numbers.formatDecimal(totalAdvance,0,'COMMA',0,'POINT')} + ' đ'">0 đ</div></div>
+                <div class="report-card"><div class="label">Thực lĩnh dự kiến</div><div class="value" th:text="${#numbers.formatDecimal(totalNet,0,'COMMA',0,'POINT')} + ' đ'">0 đ</div></div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+                <div class="section-title" style="padding:20px 20px 8px"><h2>Chi tiết nhân viên</h2></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>STT</th><th>Nhân viên</th><th>Chức vụ</th><th>Ngày công</th><th>Tổng giờ</th><th>Lương/giờ</th><th>Lương gộp</th><th>Tổng ứng</th><th>Chưa trừ</th><th>Thực lĩnh</th><th>Chi tiết</th></tr></thead>
+                        <tbody>
+                        <tr th:each="row,stat : ${rows}">
+                            <td th:text="${stat.count}">1</td>
+                            <td><strong th:text="${row.fullName}">Mỹ Lệ</strong></td>
+                            <td th:text="${row.position != null ? row.position : '-'}">Nhân viên</td>
+                            <td th:text="${row.attendanceDays}">22</td>
+                            <td th:text="${#numbers.formatDecimal(row.totalHours,1,2)}">176.50</td>
+                            <td class="money" th:text="${#numbers.formatDecimal(row.hourlyRate,0,'COMMA',0,'POINT')} + ' đ'">50,000 đ</td>
+                            <td class="money" th:text="${#numbers.formatDecimal(row.grossSalary,0,'COMMA',0,'POINT')} + ' đ'">8,825,000 đ</td>
+                            <td th:text="${#numbers.formatDecimal(row.totalAdvance,0,'COMMA',0,'POINT')} + ' đ'">500,000 đ</td>
+                            <td th:text="${#numbers.formatDecimal(row.unpaidAdvance,0,'COMMA',0,'POINT')} + ' đ'">500,000 đ</td>
+                            <td class="net" th:text="${#numbers.formatDecimal(row.netSalary,0,'COMMA',0,'POINT')} + ' đ'">8,325,000 đ</td>
+                            <td><a class="btn-link" th:href="@{/phieu-luong(employeeId=${row.employeeId},month=${month})}">Phiếu lương</a></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(rows)}"><td colspan="11" class="empty">Chưa có nhân viên hoạt động.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>
