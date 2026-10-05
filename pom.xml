@@ -42,6 +42,7 @@
 
 	<properties>
 		<java.version>17</java.version>
+		<start-class>com.chamcong.QNHRMApplication</start-class>
 	</properties>
 
 
